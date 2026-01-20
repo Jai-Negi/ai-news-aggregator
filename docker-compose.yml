@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: ai_news_db
+    environment:
+      POSTGRES_USER: ai_news_user
+      POSTGRES_PASSWORD: ai_news_password
+      POSTGRES_DB: ai_news_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_news_user -d ai_news_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
