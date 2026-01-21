@@ -1,0 +1,29 @@
+# Python cache files (auto-generated, not needed in git)
+__pycache__/
+*.pyc
+
+# Virtual environment (libraries, don't commit)
+venv/
+env/
+.venv
+ai-news-venv/
+
+# Environment variables (SECRETS - NEVER COMMIT!)
+.env
+
+# IDE files (personal settings)
+.vscode/
+.idea/
+.DS_Store
+
+# Database files (data, not code)
+*.db
+*.sqlite3
+
+# Logs (debugging info, not needed)
+*.log
+logs/
+
+# Testing artifacts
+.pytest_cache/
+.coverage
