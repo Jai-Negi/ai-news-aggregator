@@ -39,6 +39,7 @@ class Config:
         'DATABASE_URL',
         'postgresql://ai_news_user:ai_news_password@localhost:5432/ai_news_db'
     )
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
     # PostgreSQL connection string
     # Format: postgresql://username:password@host:port/database_name
     # Default uses our docker-compose database

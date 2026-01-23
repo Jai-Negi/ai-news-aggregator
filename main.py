@@ -2,11 +2,12 @@
 AI News Aggregator - Main Application Entry Point
 
 This is the main entry point for the AI News Aggregator application.
-It initializes Flask, connects configuration, and starts the web server.
+It initializes Flask, connects configuration, initializes database, and starts the web server.
 """
 
 from flask import Flask
 from config import get_config
+from app.models import init_db  # ← NEW: Import database initializer
 import logging
 import os
 
@@ -42,6 +43,9 @@ def create_app():
     app.logger.info(f"Debug Mode: {app.debug}")
     app.logger.info(f"Testing Mode: {app.testing}")
     app.logger.info("=" * 50)
+    
+    # Initialize database (NEW!)
+    init_db(app)
     
     # Register routes
     register_routes(app)
@@ -122,7 +126,7 @@ if __name__ == '__main__':
     # Create the application
     app = create_app()
     
-    # Get port from environment or use 5000
+    # Get port from environment or use 8000
     port = int(os.getenv('PORT', 8000))
     
     # Run the application
