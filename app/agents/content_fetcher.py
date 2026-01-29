@@ -285,6 +285,8 @@ class ContentFetcherAgent:
         1. external_id (URL or unique ID from source)
         2. content_hash (SHA-256 of content)
         
+        Also updates existing items if transcript becomes available.
+        
         Args:
             source: Source object this content came from
             data: Content data from RSS or YouTube service
@@ -296,7 +298,7 @@ class ContentFetcherAgent:
                 - 'author': author name (optional)
         
         Returns:
-            bool: True if saved, False if duplicate
+            bool: True if saved/updated, False if duplicate
         """
         try:
             # Get unique identifier
@@ -312,15 +314,48 @@ class ContentFetcherAgent:
             ).first()
             
             if existing:
+                # Check if we need to update transcript/content
+                new_content = data.get('content') or data.get('transcript', '')
+                existing_content = existing.content or ''
+                
+                # If existing has no/minimal content but new has transcript, update it
+                if (not existing_content or len(existing_content) < 50) and new_content and len(new_content) >= 50:
+                    logger.info(f"Updating transcript for existing video: {data.get('title', 'Unknown')[:50]}")
+                    existing.content = new_content
+                    existing.calculate_word_count()
+                    
+                    # Regenerate hash (may fail if hash conflicts, but that's rare)
+                    try:
+                        existing.content_hash = existing.generate_content_hash()
+                        db.session.commit()
+                        logger.info(f"✅ Updated transcript: {existing.title[:60]}")
+                        return True
+                    except Exception as hash_error:
+                        # If hash conflict (very rare), rollback and skip update
+                        db.session.rollback()
+                        logger.warning(f"Hash conflict when updating {external_id}: {hash_error}")
+                        return False
+                
                 logger.debug(f"Duplicate found (external_id): {data.get('title', 'Unknown')[:50]}")
                 return False
             
             # Get content (RSS uses 'content', YouTube uses 'transcript')
             content = data.get('content') or data.get('transcript', '')
             
+            # For YouTube videos, allow saving with description even if transcript is missing
+            # (transcript can be added later when available)
+            is_youtube = source.source_type == SourceType.YOUTUBE
+            
             if not content:
-                logger.warning(f"No content found for: {data.get('title', 'Unknown')[:50]}")
-                return False
+                content = data.get('description', '')
+                
+                # For YouTube: allow saving with description (transcript may come later)
+                # For RSS: require minimum content length
+                min_length = 50 if not is_youtube else 10
+                
+                if not content or len(content) < min_length:
+                    logger.warning(f"No content or description for: {data.get('title', 'Unknown')[:50]}")
+                    return False
             
             # Create new ContentItem
             content_item = ContentItem(
@@ -341,8 +376,11 @@ class ContentFetcherAgent:
                 }
             )
             
+            # Calculate word count
+            content_item.calculate_word_count()
+            
             # Calculate content hash for additional duplicate detection
-            #content_item.calculate_hash()
+            content_item.content_hash = content_item.generate_content_hash()
             
             # Check if content hash already exists (duplicate content)
             existing_hash = ContentItem.query.filter_by(

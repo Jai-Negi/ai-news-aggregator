@@ -39,7 +39,7 @@ class YouTubeService:
         youtube = YouTubeService()
         videos = youtube.get_channel_videos(
             channel_id="UCbfYPyITQ-7l4upoX8nvctg",
-            max_results=10
+            max_results=1
         )
     """
     
@@ -70,7 +70,7 @@ class YouTubeService:
     def get_channel_videos(
         self,
         channel_id: str,
-        max_results: int = 10,
+        max_results: int = 1,  # Default to 1 for production use
         published_after: Optional[datetime] = None
     ) -> List[Dict]:
         """
@@ -78,7 +78,7 @@ class YouTubeService:
         
         Args:
             channel_id: YouTube channel ID (e.g., "UCbfYPyITQ-7l4upoX8nvctg")
-            max_results: Maximum number of videos to return (default: 10)
+            max_results: Maximum number of videos to return (default: 1)
             published_after: Only get videos published after this date
         
         Returns:
@@ -87,7 +87,7 @@ class YouTubeService:
         Example:
             videos = youtube.get_channel_videos(
                 channel_id="UCbfYPyITQ-7l4upoX8nvctg",
-                max_results=5,
+                max_results=1,
                 published_after=datetime(2026, 1, 20)
             )
         """
@@ -209,9 +209,12 @@ class YouTubeService:
             # Get transcript
             transcript = self.get_video_transcript(video_id)
             
+            # If no transcript, log but still return video metadata
+            # (Changed: Don't skip video if transcript unavailable)
             if not transcript:
-                logger.warning(f"No transcript for video {video_id}, skipping")
-                return None
+                logger.warning(f"No transcript for video {video_id}")
+                # Still return video with empty transcript
+                transcript = ""
             
             # Build video data
             video_data = {
@@ -240,6 +243,8 @@ class YouTubeService:
         """
         Get transcript/captions for a video.
         
+        Handles rate limiting and various error conditions gracefully.
+        
         Args:
             video_id: YouTube video ID
         
@@ -256,28 +261,40 @@ class YouTubeService:
                 languages=['en', 'en-US', 'en-GB']
             )
             
-            # Combine all text segments
+            # FetchedTranscript is directly iterable
+            # Each entry is a FetchedTranscriptSnippet with .text attribute
             transcript_text = ' '.join([
-                entry['text'] for entry in fetched_transcript.transcript
+                entry.text for entry in fetched_transcript
             ])
             
-            logger.info(f"Got transcript for {video_id} ({len(transcript_text)} chars)")
+            logger.info(f"✅ Got transcript for {video_id} ({len(transcript_text)} chars)")
             return transcript_text
             
         except TranscriptsDisabled:
-            logger.warning(f"Transcripts disabled for video {video_id}")
+            logger.warning(f"⚠️ Transcripts disabled for video {video_id}")
             return None
             
         except NoTranscriptFound:
-            logger.warning(f"No transcript found for video {video_id}")
+            logger.warning(f"⚠️ No transcript found for video {video_id}")
             return None
             
         except VideoUnavailable:
-            logger.warning(f"Video unavailable: {video_id}")
+            logger.warning(f"⚠️ Video unavailable: {video_id}")
             return None
             
         except Exception as e:
-            logger.error(f"Error getting transcript for {video_id}: {e}")
+            # Better error handling for rate limiting
+            error_msg = str(e).lower()
+            
+            if 'too many requests' in error_msg or 'rate limit' in error_msg:
+                logger.warning(f"⚠️ Rate limited for video {video_id} - temporary YouTube restriction")
+            elif 'ip' in error_msg and ('block' in error_msg or 'ban' in error_msg):
+                logger.warning(f"⚠️ IP temporarily blocked for video {video_id} - wait 24 hours")
+            elif 'could not retrieve' in error_msg:
+                logger.warning(f"⚠️ Could not retrieve transcript for {video_id} - may be rate limited")
+            else:
+                logger.error(f"❌ Error getting transcript for {video_id}: {e}")
+            
             return None
     
     def get_video_details(self, video_id: str) -> Optional[Dict]:
@@ -323,7 +340,7 @@ class YouTubeService:
                 'channel_title': snippet['channelTitle'],
                 'url': f"https://www.youtube.com/watch?v={video_id}",
                 'thumbnail': snippet['thumbnails']['high']['url'],
-                'transcript': transcript,
+                'transcript': transcript or "",
                 'duration': item['contentDetails']['duration'],
                 'view_count': int(item['statistics'].get('viewCount', 0)),
                 'like_count': int(item['statistics'].get('likeCount', 0)),
