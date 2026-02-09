@@ -33,3 +33,17 @@ test_*.py
 check_*.py
 add_*.py
 
+
+# Test outputs
+digest_preview.html
+tests/digest_preview.html
+
+# Debug/temporary scripts
+scripts/debug_*.py
+scripts/clear_*.py
+scripts/count_*.py
+scripts/check_*.py
+
+# Test files
+test_youtube_transcript
+tests/test_youtube_transcript

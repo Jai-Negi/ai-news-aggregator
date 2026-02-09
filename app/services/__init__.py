@@ -1,20 +1,16 @@
 """
 Services Package
-
-External API integrations and service connectors.
-
-Available services:
-- GeminiService: AI summarization and analysis
-- YouTubeService: YouTube video and transcript fetching
-- RSSService: RSS feed parsing
+External API integrations and utilities.
 """
 
 from app.services.gemini_service import GeminiService
-from app.services.youtube_service import YouTubeService
 from app.services.rss_service import RSSService
+from app.services.youtube_service import YouTubeService
+from app.services.resend_service import ResendService
 
 __all__ = [
     'GeminiService',
+    'RSSService', 
     'YouTubeService',
-    'RSSService',
+    'ResendService',
 ]
