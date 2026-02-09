@@ -27,3 +27,9 @@ logs/
 # Testing artifacts
 .pytest_cache/
 .coverage
+
+# Test files
+test_*.py
+check_*.py
+add_*.py
+
