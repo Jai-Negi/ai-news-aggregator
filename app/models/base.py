@@ -32,12 +32,11 @@ class BaseModel(db.Model):
     It just provides functionality to child classes.
     """
     
-    # Tell SQLAlchemy this is abstract (don't create a table for it)
+    # Tell SQLAlchemy this is abstract 
     __abstract__ = True
     
-    # ================================
-    # Common Fields (All Models Have These)
-    # ================================
+    # Common Fields 
+    
     
     id = db.Column(
         db.Integer,
@@ -65,9 +64,7 @@ class BaseModel(db.Model):
     # Timestamp when record was last updated
     # onupdate=datetime.utcnow means automatically update when row changes
     
-    # ================================
-    # Helper Methods (All Models Inherit These)
-    # ================================
+    # Helper Methods 
     
     def save(self):
         """

@@ -48,7 +48,7 @@ def main():
         active_subscribers = SubscriberValidator.get_all_active()
         
         if not active_subscribers:
-            log("⚠️  No active subscribers")
+            log("No active subscribers")
             log("   Add subscribers: python3 scripts/add_subscriber.py")
             log("")
             log("Pipeline stopped")
@@ -70,7 +70,7 @@ def main():
         
         if fetch_results['total_saved'] == 0:
             log("")
-            log("⚠️  No new content")
+            log("No new content")
             log("  Will try again tomorrow")
             return 0
         
@@ -84,7 +84,7 @@ def main():
         log(f"  Processed: {process_results['processed']}")
         
         if process_results['processed'] == 0:
-            log("⚠️  No articles processed")
+            log("No articles processed")
             return 1
         
         # Generate digest
@@ -97,16 +97,16 @@ def main():
         log(f"  Available: {stats.get('available_for_digest', 0)}")
         
         if stats.get('available_for_digest', 0) == 0:
-            log("⚠️  No articles available")
+            log("No articles available")
             return 0
         
         html = generator.generate_digest(max_articles=10, min_quality=5)
         
         if not html:
-            log("❌ Failed to generate digest")
+            log("Failed to generate digest")
             return 1
         
-        log("✅ Digest generated")
+        log("Digest generated")
         
         # Send to subscribers
         log("")
@@ -133,7 +133,7 @@ def main():
         # Summary
         log("")
         log("=" * 70)
-        log("✅ Pipeline complete!")
+        log("Pipeline complete!")
         log("=" * 70)
         log(f"  Sent: {sent}/{len(active_subscribers)}")
         if failed > 0:

@@ -114,11 +114,11 @@ class ResendService:
             # Send email
             response = resend.Emails.send(email_data)
             
-            logger.info(f"✅ Email sent successfully to {to}: {response}")
+            logger.info(f"Email sent successfully to {to}: {response}")
             return True
             
         except Exception as e:
-            logger.error(f"❌ Failed to send email to {to}: {e}")
+            logger.error(f"Failed to send email to {to}: {e}")
             return False
     
     def send_digest(

@@ -21,10 +21,8 @@ import logging
 from typing import List, Dict, Optional
 from datetime import datetime
 
-# Import Gemini service
 from app.services import GeminiService
 
-# Import models
 from app.models import ContentItem, Article, db
 
 logger = logging.getLogger(__name__)
@@ -143,7 +141,7 @@ class ContentProcessorAgent:
             db.session.commit()
             return False
         
-        # Step 1: Summarize
+        # Summarize
         logger.debug("Summarizing content...")
         summary = self.gemini.summarize(
             item.content,
@@ -155,15 +153,15 @@ class ContentProcessorAgent:
             logger.warning(f"Failed to generate summary for item {item.id}")
             return False
         
-        # Step 2: Rate quality
+        # Rate quality
         logger.debug("Rating quality...")
         quality_score = self.gemini.rate_quality(item.content)
         
-        # Step 3: Extract topic
+        # Extract topic
         logger.debug("Extracting topic...")
         topic = self.gemini.extract_topic(item.title, summary)
         
-        # Step 4: Extract tags
+        # Extract tags
         logger.debug("Extracting tags...")
         tags_list = self.gemini.extract_tags(item.content, max_tags=5)
         

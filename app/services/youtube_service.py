@@ -267,19 +267,19 @@ class YouTubeService:
                 entry.text for entry in fetched_transcript
             ])
             
-            logger.info(f"✅ Got transcript for {video_id} ({len(transcript_text)} chars)")
+            logger.info(f"Got transcript for {video_id} ({len(transcript_text)} chars)")
             return transcript_text
             
         except TranscriptsDisabled:
-            logger.warning(f"⚠️ Transcripts disabled for video {video_id}")
+            logger.warning(f"Transcripts disabled for video {video_id}")
             return None
             
         except NoTranscriptFound:
-            logger.warning(f"⚠️ No transcript found for video {video_id}")
+            logger.warning(f"No transcript found for video {video_id}")
             return None
             
         except VideoUnavailable:
-            logger.warning(f"⚠️ Video unavailable: {video_id}")
+            logger.warning(f"Video unavailable: {video_id}")
             return None
             
         except Exception as e:
@@ -287,13 +287,13 @@ class YouTubeService:
             error_msg = str(e).lower()
             
             if 'too many requests' in error_msg or 'rate limit' in error_msg:
-                logger.warning(f"⚠️ Rate limited for video {video_id} - temporary YouTube restriction")
+                logger.warning(f"Rate limited for video {video_id} - temporary YouTube restriction")
             elif 'ip' in error_msg and ('block' in error_msg or 'ban' in error_msg):
-                logger.warning(f"⚠️ IP temporarily blocked for video {video_id} - wait 24 hours")
+                logger.warning(f"IP temporarily blocked for video {video_id} - wait 24 hours")
             elif 'could not retrieve' in error_msg:
-                logger.warning(f"⚠️ Could not retrieve transcript for {video_id} - may be rate limited")
+                logger.warning(f"Could not retrieve transcript for {video_id} - may be rate limited")
             else:
-                logger.error(f"❌ Error getting transcript for {video_id}: {e}")
+                logger.error(f"Error getting transcript for {video_id}: {e}")
             
             return None
     

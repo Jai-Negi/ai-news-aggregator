@@ -20,13 +20,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
-# Import our services
+
 from app.services import RSSService, YouTubeService
 
-# Import our models
 from app.models import Source, ContentItem, SourceType
 
-# Database access
 from app.models import db
 
 logger = logging.getLogger(__name__)
@@ -204,7 +202,7 @@ class ContentFetcherAgent:
                     logger.debug(f"Skipping old article: {article['title'][:50]}")
                     continue
                 
-                # Try to save (handles duplicates)
+                # Try to save
                 saved = self._save_content_item(source, article)
                 
                 if saved:
@@ -254,7 +252,7 @@ class ContentFetcherAgent:
             
             # Process each video
             for video in videos:
-                # Try to save (handles duplicates)
+                # Try to save 
                 saved = self._save_content_item(source, video)
                 
                 if saved:
@@ -308,7 +306,7 @@ class ContentFetcherAgent:
                 logger.warning(f"No external_id found for: {data.get('title', 'Unknown')[:50]}")
                 return False
             
-            # Check if already exists (by external_id)
+            # Check if already exists by external_id
             existing = ContentItem.query.filter_by(
                 external_id=external_id
             ).first()
@@ -324,14 +322,14 @@ class ContentFetcherAgent:
                     existing.content = new_content
                     existing.calculate_word_count()
                     
-                    # Regenerate hash (may fail if hash conflicts, but that's rare)
+                    # Regenerate hash 
                     try:
                         existing.content_hash = existing.generate_content_hash()
                         db.session.commit()
                         logger.info(f"✅ Updated transcript: {existing.title[:60]}")
                         return True
                     except Exception as hash_error:
-                        # If hash conflict (very rare), rollback and skip update
+                        # If hash conflicts, rollback and skip update
                         db.session.rollback()
                         logger.warning(f"Hash conflict when updating {external_id}: {hash_error}")
                         return False
@@ -343,13 +341,12 @@ class ContentFetcherAgent:
             content = data.get('content') or data.get('transcript', '')
             
             # For YouTube videos, allow saving with description even if transcript is missing
-            # (transcript can be added later when available)
             is_youtube = source.source_type == SourceType.YOUTUBE
             
             if not content:
                 content = data.get('description', '')
                 
-                # For YouTube: allow saving with description (transcript may come later)
+                # For YouTube: allow saving with description
                 # For RSS: require minimum content length
                 min_length = 50 if not is_youtube else 10
                 
@@ -382,7 +379,7 @@ class ContentFetcherAgent:
             # Calculate content hash for additional duplicate detection
             content_item.content_hash = content_item.generate_content_hash()
             
-            # Check if content hash already exists (duplicate content)
+            # Check if content hash already exists 
             existing_hash = ContentItem.query.filter_by(
                 content_hash=content_item.content_hash
             ).first()

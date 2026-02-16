@@ -51,9 +51,7 @@ class Source(BaseModel):
     # Table name in database
     __tablename__ = 'sources'
     
-    # ================================
     # Columns
-    # ================================
     
     name = db.Column(
         db.String(255),
@@ -126,18 +124,14 @@ class Source(BaseModel):
     # Total number of items we've fetched from this source
     # Useful for statistics
     
-    # ================================
     # Relationships
-    # ================================
     
     # One source has many content items
     # This creates a "virtual" field: source.content_items
     # content_items = relationship to ContentItem model (we'll create this next)
     # We'll add this relationship when we create article.py
     
-    # ================================
     # Methods
-    # ================================
     
     def __repr__(self):
         """String representation for debugging"""

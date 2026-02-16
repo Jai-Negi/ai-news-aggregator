@@ -23,10 +23,10 @@ class SubscriberValidator:
     Used by both CLI and API to ensure consistent validation.
     """
     
-    # Email regex pattern (basic but effective)
+    # Email regex pattern 
     EMAIL_PATTERN = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
     
-    # Blocked domains (spam/temporary emails)
+    # Blocked domains 
     BLOCKED_DOMAINS = [
         'tempmail.com',
         'guerrillamail.com',

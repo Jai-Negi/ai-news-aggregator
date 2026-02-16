@@ -42,9 +42,8 @@ class ContentItem(BaseModel):
     # Table name
     __tablename__ = 'content_items'
     
-    # ================================
+   
     # Foreign Keys
-    # ================================
     
     source_id = db.Column(
         db.Integer,
@@ -53,9 +52,7 @@ class ContentItem(BaseModel):
     )
     # Links to the source this content came from
     
-    # ================================
     # Content Identification
-    # ================================
     
     external_id = db.Column(
         db.String(500),
@@ -78,9 +75,7 @@ class ContentItem(BaseModel):
     # SHA-256 hash of content (backup deduplication)
     # Catches duplicates even with different IDs
     
-    # ================================
     # Content Data
-    # ================================
     
     title = db.Column(
         db.String(500),
@@ -118,9 +113,7 @@ class ContentItem(BaseModel):
     # When the content was originally published
     # index=True for date-based queries
     
-    # ================================
     # Processing Status
-    # ================================
     
     processed = db.Column(
         db.Boolean,
@@ -139,26 +132,22 @@ class ContentItem(BaseModel):
     )
     # When it was processed
     
-    # ================================
     # Metadata
-    # ================================
     
     word_count = db.Column(
         db.Integer,
         nullable=True
     )
-    # Length of content (calculated)
+    # Length of content 
     
     language = db.Column(
         db.String(10),
         nullable=True,
         default='en'
     )
-    # Content language (e.g., 'en', 'es', 'fr')
+    # Content language 
     
-    # ================================
     # Relationships
-    # ================================
     
     # Many content items belong to one source
     source = db.relationship(
@@ -172,9 +161,7 @@ class ContentItem(BaseModel):
     # One content item has one article (after processing)
     # We'll add this relationship from the Article model
     
-    # ================================
     # Methods
-    # ================================
     
     def __repr__(self):
         """String representation"""
@@ -278,9 +265,7 @@ class Article(BaseModel):
     # Table name
     __tablename__ = 'articles'
     
-    # ================================
     # Foreign Keys
-    # ================================
     
     content_item_id = db.Column(
         db.Integer,
@@ -291,9 +276,7 @@ class Article(BaseModel):
     # Links to the original content item
     # unique=True: one content item = one article
     
-    # ================================
     # Processed Content
-    # ================================
     
     title = db.Column(
         db.String(500),
@@ -308,9 +291,7 @@ class Article(BaseModel):
     # AI-generated summary from Gemini
     # Length controlled by MAX_SUMMARY_LENGTH config
     
-    # ================================
     # Quality & Relevance
-    # ================================
     
     quality_score = db.Column(
         db.Integer,
@@ -328,9 +309,7 @@ class Article(BaseModel):
     # AI-extracted tags: ["machine-learning", "gpt", "natural-language"]
     # JSON field stores array
     
-    # ================================
     # Topic Clustering
-    # ================================
     
     topic_cluster = db.Column(
         db.String(255),
@@ -356,9 +335,7 @@ class Article(BaseModel):
     # Is this the main article for its topic cluster?
     # Primary article shows cluster_summary in digest
     
-    # ================================
     # Digest Status
-    # ================================
     
     included_in_digest = db.Column(
         db.Boolean,
@@ -379,9 +356,7 @@ class Article(BaseModel):
     # Which digest date this was included in
     # Used to prevent duplicates in same digest
     
-    # ================================
     # Metadata
-    # ================================
     
     published_at = db.Column(
         db.DateTime,
@@ -391,9 +366,7 @@ class Article(BaseModel):
     # Original publication date (copied from ContentItem)
     # index=True for date-based sorting
     
-    # ================================
     # Relationships
-    # ================================
     
     # One article belongs to one content item
     content_item = db.relationship(
@@ -405,9 +378,7 @@ class Article(BaseModel):
     # Usage: content_item.article.summary
     # backref with uselist=False creates one-to-one relationship
     
-    # ================================
     # Methods
-    # ================================
     
     def __repr__(self):
         """String representation"""

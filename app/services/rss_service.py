@@ -20,7 +20,7 @@ from datetime import datetime
 import feedparser
 from dateutil import parser as date_parser
 
-# Fix SSL certificate verification for macOS
+
 import ssl
 import certifi
 ssl._create_default_https_context = lambda: ssl.create_default_context(cafile=certifi.where())

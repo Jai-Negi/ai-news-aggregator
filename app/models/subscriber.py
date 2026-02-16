@@ -58,9 +58,9 @@ class Subscriber(BaseModel):
     # Table name
     __tablename__ = 'subscribers'
     
-    # ================================
+    
     # Subscriber Information
-    # ================================
+    
     
     email = db.Column(
         db.String(255),
@@ -78,9 +78,7 @@ class Subscriber(BaseModel):
     # Subscriber's name (optional)
     # Used for personalization: "Hi John!"
     
-    # ================================
     # Subscription Settings
-    # ================================
     
     status = db.Column(
         Enum(SubscriberStatus),
@@ -99,9 +97,7 @@ class Subscriber(BaseModel):
     # How often to receive digests
     # Currently only DAILY is implemented
     
-    # ================================
     # Preferences
-    # ================================
     
     topics_of_interest = db.Column(
         db.JSON,
@@ -127,9 +123,7 @@ class Subscriber(BaseModel):
     # Maximum number of articles in each digest
     # Prevents overwhelming the subscriber
     
-    # ================================
     # Subscription Management
-    # ================================
     
     subscribed_at = db.Column(
         db.DateTime,
@@ -153,9 +147,7 @@ class Subscriber(BaseModel):
     # Used to prevent duplicate sends
     # index=True for scheduling queries
     
-    # ================================
     # Tokens & Security
-    # ================================
     
     unsubscribe_token = db.Column(
         db.String(64),
@@ -167,9 +159,7 @@ class Subscriber(BaseModel):
     # Example: /unsubscribe?token=abc123...
     # index=True for fast token lookups
     
-    # ================================
     # Metadata
-    # ================================
     
     source = db.Column(
         db.String(100),
@@ -206,9 +196,7 @@ class Subscriber(BaseModel):
     # Tracks email opens (requires tracking pixel)
     # Future feature
     
-    # ================================
     # Relationships
-    # ================================
     
     # One subscriber has many digest logs
     digest_logs = db.relationship(
@@ -220,9 +208,7 @@ class Subscriber(BaseModel):
     # Usage: subscriber.digest_logs (get all sent emails)
     # cascade='all, delete-orphan' = delete logs when subscriber deleted
     
-    # ================================
     # Methods
-    # ================================
     
     def __repr__(self):
         """String representation"""
@@ -393,9 +379,7 @@ class DigestLog(BaseModel):
     # Table name
     __tablename__ = 'digest_logs'
     
-    # ================================
     # Foreign Keys
-    # ================================
     
     subscriber_id = db.Column(
         db.Integer,
@@ -406,9 +390,7 @@ class DigestLog(BaseModel):
     # Links to subscriber who received this digest
     # index=True for fast queries by subscriber
     
-    # ================================
     # Digest Information
-    # ================================
     
     digest_date = db.Column(
         db.Date,
@@ -426,9 +408,7 @@ class DigestLog(BaseModel):
     )
     # When the email was actually sent
     
-    # ================================
     # Content Details
-    # ================================
     
     articles_included = db.Column(
         db.Integer,
@@ -452,9 +432,7 @@ class DigestLog(BaseModel):
     # Array of topic clusters included
     # Example: ["gpt-5-release", "ai-safety-research"]
     
-    # ================================
     # Delivery Status
-    # ================================
     
     status = db.Column(
         db.String(50),
@@ -475,9 +453,7 @@ class DigestLog(BaseModel):
     )
     # Error details if delivery failed
     
-    # ================================
     # Email Service Response
-    # ================================
     
     email_service_id = db.Column(
         db.String(255),
@@ -486,9 +462,7 @@ class DigestLog(BaseModel):
     # ID from email service (Resend, SendGrid, etc.)
     # Used to track delivery status
     
-    # ================================
     # Engagement Tracking
-    # ================================
     
     opened_at = db.Column(
         db.DateTime,
@@ -512,9 +486,7 @@ class DigestLog(BaseModel):
     # Number of link clicks
     # Future feature
     
-    # ================================
     # Methods
-    # ================================
     
     def __repr__(self):
         """String representation"""
