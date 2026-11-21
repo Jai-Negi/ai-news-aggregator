@@ -1,6 +1,6 @@
 # AI News Aggregator
 
-> A daily AI news digest, built as a three-stage pipeline: it collects posts and YouTube videos, uses Gemini to summarise, score and tag each one, and emails subscribers only the highest-quality stories.
+> A daily AI news digest powered by three specialised agents: one collects posts and YouTube videos, one uses Gemini to summarise, score and tag each item, and one emails subscribers only the highest-quality stories.
 
 ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![Flask](https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini%202.5%20Flash-8E75B2?logo=googlegemini&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
 
@@ -98,7 +98,7 @@ config/         Settings loaded from .env
 
 ## What I learned
 
-- Splitting the pipeline into fetch, process and deliver stages made each part easier to debug and rerun on its own
+- Splitting the work into fetch, process and deliver agents made each part easier to debug and rerun on its own
 - Asking the LLM for a numeric quality score turned out to be a simple, effective filter for noisy sources
 - Storing raw items before processing means a failed LLM call never loses data, it just gets retried on the next run
 
