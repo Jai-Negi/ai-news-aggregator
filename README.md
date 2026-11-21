@@ -25,22 +25,22 @@ AI news moves fast and is spread across company blogs, news sites and YouTube. I
 flowchart LR
     RSS[RSS feeds<br/>blogs and news] --> F
     YT[YouTube<br/>transcripts] --> F
-    F[Content fetcher<br/>dedupe by ID and hash] --> CI[(PostgreSQL<br/>content items)]
-    CI --> P[Content processor<br/>Gemini: summary, score,<br/>topic, tags]
+    F[Fetch<br/>dedupe by ID and hash] --> CI[(PostgreSQL<br/>content items)]
+    CI --> P[Process with Gemini<br/>summary, score,<br/>topic, tags]
     P --> A[(PostgreSQL<br/>articles)]
-    A --> D[Digest generator<br/>top articles by score]
+    A --> D[Build digest<br/>top articles by score]
     D --> R[Resend] --> S[Subscribers]
 ```
 
-The pipeline has three stages, each in its own class:
+The pipeline has three stages:
 
-| Stage | Class | What it does |
-|---|---|---|
-| Fetch | `ContentFetcherAgent` | Pulls the last 24 hours of RSS and YouTube content and stores new items |
-| Process | `ContentProcessorAgent` | Sends each new item to Gemini for a summary, quality score, topic and tags |
-| Deliver | `DigestGeneratorAgent` | Picks the highest-scoring articles and builds the HTML email |
+| Stage | What it does |
+|---|---|
+| Fetch | Pulls the last 24 hours of RSS and YouTube content and stores new items |
+| Process | Sends each new item to Gemini for a summary, quality score, topic and tags |
+| Deliver | Picks the highest-scoring articles and builds the HTML email |
 
-`jobs/daily_digest.py` runs all three in order and sends the digest. Schedule it with cron to run every morning.
+`jobs/daily_digest.py` runs all three stages in order and sends the digest. Schedule it with cron to run every morning.
 
 ## Tech stack
 
@@ -90,9 +90,7 @@ See `.env.example` for the full list. Everything runs on free tiers.
 ## Project structure
 
 ```
-app/agents/     Fetcher, processor and digest generator
-app/services/   Gemini, Resend, RSS and YouTube clients
-app/models/     SQLAlchemy models: sources, content items, articles, subscribers
+app/            Pipeline stages, service clients (Gemini, Resend, RSS, YouTube) and SQLAlchemy models
 jobs/           Daily pipeline job
 scripts/        Subscriber and digest utilities
 config/         Settings loaded from .env
