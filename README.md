@@ -1,63 +1,115 @@
 # AI News Aggregator
 
-This project automatically collects the latest updates in Artificial Intelligence and sends a daily email summary.
+> A daily AI news digest, built as a three-stage pipeline: it collects posts and YouTube videos, uses Gemini to summarise, score and tag each one, and emails subscribers only the highest-quality stories.
 
-The goal is to help users stay informed about important AI developments without spending time browsing multiple websites and channels.
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![Flask](https://img.shields.io/badge/Flask-000000?logo=flask&logoColor=white) ![Gemini](https://img.shields.io/badge/Gemini%202.5%20Flash-8E75B2?logo=googlegemini&logoColor=white) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?logo=sqlalchemy&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![License: MIT](https://img.shields.io/badge/License-MIT-yellow)
 
-## Overview
+<!-- Demo: add a screenshot of a digest email, e.g. docs/digest.png -->
 
-The system performs the following steps:
-- Collects AI-related content from YouTube, company blogs, and tech news websites
-- Extracts the main information from each source
-- Summarizes the content using Google Gemini
-- Filters and removes duplicate or low-value updates
-- Selects the most relevant news
-- Sends a daily email digest with links to the original sources
+## Why I built it
 
-## Data Sources
+AI news moves fast and is spread across company blogs, news sites and YouTube. I wanted one short email each morning with only the updates worth reading, and a project that covers a full data pipeline: ingestion, LLM processing, storage, ranking and delivery.
 
-Content is gathered from:
-- AI-focused YouTube channels (using transcripts)
-- Official AI company blogs such as OpenAI, Google DeepMind, Meta AI, etc.
-- Tech news platforms like TechCrunch and VentureBeat
+## Features
 
-Sources can be configured using environment variables.
+- **Multi-source ingestion:** RSS feeds from AI company blogs and tech news sites, plus YouTube videos using their transcripts
+- **No duplicates:** items are matched by source ID and content hash, so the same story isn't processed twice
+- **LLM processing with Gemini 2.5 Flash:** each item gets a summary, a 0 to 10 quality score, a topic and tags
+- **Quality filter:** only articles above a configurable minimum score make the digest, ranked by score
+- **HTML email digest** sent to every active subscriber through Resend
+- **Configurable:** sources, send time, summary length, minimum score and digest size are all set in `.env`
 
-## Tech Stack
+## How it works
 
-- Python
-- Google Gemini API (for summarization)
-- PostgreSQL (data storage)
-- Resend (email delivery)
-- Docker and Docker Compose
+```mermaid
+flowchart LR
+    RSS[RSS feeds<br/>blogs and news] --> F
+    YT[YouTube<br/>transcripts] --> F
+    F[Content fetcher<br/>dedupe by ID and hash] --> CI[(PostgreSQL<br/>content items)]
+    CI --> P[Content processor<br/>Gemini: summary, score,<br/>topic, tags]
+    P --> A[(PostgreSQL<br/>articles)]
+    A --> D[Digest generator<br/>top articles by score]
+    D --> R[Resend] --> S[Subscribers]
+```
 
-The project is designed to run using free-tier services.
+The pipeline has three stages, each in its own class:
 
-## How It Works (High Level)
+| Stage | Class | What it does |
+|---|---|---|
+| Fetch | `ContentFetcherAgent` | Pulls the last 24 hours of RSS and YouTube content and stores new items |
+| Process | `ContentProcessorAgent` | Sends each new item to Gemini for a summary, quality score, topic and tags |
+| Deliver | `DigestGeneratorAgent` | Picks the highest-scoring articles and builds the HTML email |
 
-1. Fetch new AI content from configured sources  
-2. Process and summarize the content  
-3. Score and filter based on relevance  
-4. Generate a daily news digest  
-5. Send the digest via email  
+`jobs/daily_digest.py` runs all three in order and sends the digest. Schedule it with cron to run every morning.
 
-## Setup
+## Tech stack
 
-1. Clone the repository
-   git clone https://github.com/Jai-Negi/ai-news-aggregator.git
+| Area | Technologies |
+|---|---|
+| App | Python, Flask (app factory pattern) |
+| LLM | Google Gemini 2.5 Flash |
+| Data | PostgreSQL, SQLAlchemy, Alembic |
+| Ingestion | feedparser, BeautifulSoup, youtube-transcript-api |
+| Email | Resend |
+| Infrastructure | Docker Compose (PostgreSQL), cron |
 
-2. Move into the project folder
-   cd ai-news-aggregator
+## Quick start
 
-3. Create a .env file and add the required API keys and configuration (refer to .env.example)
+```bash
+git clone https://github.com/Jai-Negi/ai-news-aggregator.git
+cd ai-news-aggregator
+cp .env.example .env            # add your Gemini and Resend keys
+docker compose up -d            # starts PostgreSQL
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python jobs/daily_digest.py     # fetch, process and send
+```
 
-4. Run the project using Docker
-   docker-compose up --build
+Run it every day at 8 am:
 
-## Purpose
+```bash
+0 8 * * * cd /path/to/ai-news-aggregator && venv/bin/python jobs/daily_digest.py >> logs/daily.log 2>&1
+```
 
-This project was built to practice:
-- Building end-to-end AI workflows
-- Using Large Language Models for real-world use cases
-- Automating data collection and processing
-- Designing a production-style system
+Manage subscribers with the scripts in `scripts/` (`list_subscribers.py`, `remove_subscriber.py`, `send_digest.py`).
+
+## Configuration
+
+| Variable | Purpose |
+|---|---|
+| `GEMINI_API_KEY` | Gemini API key |
+| `RESEND_API_KEY`, `FROM_EMAIL` | Email delivery |
+| `DATABASE_URL` | PostgreSQL connection |
+| `RSS_FEEDS`, `YOUTUBE_CHANNELS` | Sources to collect from |
+| `MIN_QUALITY_SCORE` | Lowest score allowed in the digest |
+| `MAX_ITEMS_PER_DIGEST` | Number of stories per email |
+| `DIGEST_SEND_HOUR`, `DIGEST_SEND_MINUTE` | Send time |
+
+See `.env.example` for the full list. Everything runs on free tiers.
+
+## Project structure
+
+```
+app/agents/     Fetcher, processor and digest generator
+app/services/   Gemini, Resend, RSS and YouTube clients
+app/models/     SQLAlchemy models: sources, content items, articles, subscribers
+jobs/           Daily pipeline job
+scripts/        Subscriber and digest utilities
+config/         Settings loaded from .env
+```
+
+## What I learned
+
+- Splitting the pipeline into fetch, process and deliver stages made each part easier to debug and rerun on its own
+- Asking the LLM for a numeric quality score turned out to be a simple, effective filter for noisy sources
+- Storing raw items before processing means a failed LLM call never loses data, it just gets retried on the next run
+
+## Next steps
+
+- Add automated tests and CI
+- A web page for subscribing and unsubscribing
+- Personalised digests based on each subscriber's topics
+
+## License
+
+MIT
